@@ -1,83 +1,24 @@
 # xmailler
 
-Extension XCore d'envoi d'email asynchrone via SMTP.
+Envoi d'emails applicatifs.
 
-## Fonctionnalités
+Extension xcore d'envoi SMTP : invitations, rappels, notifications.
 
-- Envoi direct avec retry automatique (`send`)
-- Envoi depuis templates HTML intégrés (`send_template`)
-- Envoi en masse avec concurrence contrôlée (`send_bulk`)
-- File d'envoi fire-and-forget non bloquant (`queue`)
-- Templates intégrés : `welcome`, `password_reset`, `invitation`, `password_changed`, `oauth_linked`, `notification`
-- Mode dégradé si SMTP inaccessible (log simulé sans crash)
+## Place dans DONNA
 
-## Configuration
+Ce dépôt est un composant de [DONNA](https://github.com/Donna-hub-s), assistante augmentée
+bâtie sur le framework de plugins **xcore**. Il est monté comme sous-module à
+`backend/extensions/xmailler/` dans le dépôt applicatif, et n'est pas prévu pour tourner seul :
+xcore le charge, lui injecte ses services et lit son `plugin.yaml`.
 
-```yaml
-services:
-  extensions:
-    email:
-      module: extensions.xmailler.main:EmailService
-      config:
-        smtp_host: ${XAUTH_SMTP_HOST}
-        smtp_port: ${XAUTH_SMTP_PORT}
-        smtp_user: ${XAUTH_SMTP_USER}
-        smtp_password: ${XAUTH_SMTP_PASSWORD}
-        from_address: ${XAUTH_SMTP_FROM}
-        from_name: ${XAUTH_SMTP_FROM_NAME}
-        use_tls: ${XAUTH_SMTP_USE_TLS}
-        timeout: 10
-        max_retries: 3
-        queue_size: 100
-```
+Les modules partagés avec les autres composants vivent dans
+[donna-commons](https://github.com/Donna-hub-s/donna-commons).
 
-## Utilisation depuis un plugin
+## Historique
 
-```python
-email = self.get_service("ext.email")
+Extrait du monorepo avec `git filter-repo` : l'historique des fichiers de ce composant
+est conservé, celui des autres composants ne l'est pas.
 
-# Envoi direct
-await email.send(to="alice@example.com", subject="Bonjour", body="<h1>Hello</h1>", is_html=True)
+## Licence
 
-# Template intégré
-await email.send_template(
-    to="alice@example.com",
-    template="welcome",
-    context={"username": "Alice"}
-)
-
-# Envoi en masse (max 5 en parallèle)
-await email.send_bulk([
-    {"to": "a@example.com", "subject": "Notif", "body": "..."},
-    {"to": "b@example.com", "subject": "Notif", "body": "..."},
-], max_concurrent=5)
-
-# Fire-and-forget (non bloquant)
-email.queue(to="alice@example.com", subject="Notif", body="Message")
-
-# Template custom
-email.add_template("mon_template", "<h1>{{ username }}</h1>")
-```
-
-## Variables d'environnement
-
-| Variable | Description |
-|---|---|
-| `XAUTH_SMTP_HOST` | Serveur SMTP |
-| `XAUTH_SMTP_PORT` | Port SMTP (ex: 587) |
-| `XAUTH_SMTP_USER` | Utilisateur SMTP |
-| `XAUTH_SMTP_PASSWORD` | Mot de passe SMTP |
-| `XAUTH_SMTP_FROM` | Adresse expéditeur |
-| `XAUTH_SMTP_FROM_NAME` | Nom affiché expéditeur |
-| `XAUTH_SMTP_USE_TLS` | Activer TLS (`true`/`false`) |
-
-## Structure
-
-```
-xmailler/
-├── main.py        # EmailService (BaseService)
-├── config.py      # EmailConfig, EmailMessage
-├── smtp.py        # Transport SMTP (aiosmtplib)
-├── templates.py   # Templates HTML intégrés
-└── service.yaml   # Manifeste de l'extension
-```
+MIT — voir [LICENSE](LICENSE).
